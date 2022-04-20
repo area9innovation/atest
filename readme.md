@@ -37,7 +37,7 @@ flowchart TD
   
 ```
 
-__Please describe the infrastructure as code leaving out the actual CI and CD.__ You can pick the tools/languages and underlying cloud that you are most comfortable with. This is a practical task, so some IaC or configs/scripts are required.
+__Please create the infrastructure as code leaving out the actual CI and CD.__ You can pick the tools/languages and underlying cloud that you are most comfortable with. This is a practical task, so some IaC or configs/scripts are required.
 
 You are not expected to be thorough, but pick parts that make most sense to go into a code repository in your opinion. Making assumptions and cutting corners is fine. Please document the decision making related to that.
 
