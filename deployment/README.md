@@ -28,7 +28,7 @@ A single VPC with the following elements will be created:
  - Two NAT gateways, one for each private subnet
  - A routing table for public subnets with a default route pointing to the internet gateway
  - Two routing tables for private subnets, one for each, with default routes pointing to the corresponding NAT gateway present in that subnet
- - Security groups for for an ECS task, an ALB and an RDS database permitting the necessary communications
+ - Security groups for an ECS task, an ALB and an RDS database permitting the necessary communications
  
 #### Load Balancer
 
@@ -41,7 +41,7 @@ An ALB will be created on the public subnets with the following features:
 ECS on Fargate will be used to eventually run the desired container through the following components:
 - ECS Cluster
 - ECS Service on private subnets
-- ECS Task runing an nginx container
+- ECS Task running an nginx container
 
 #### RDS
 
@@ -51,7 +51,7 @@ An RDS database will be launched with the following features:
 
 ### Deployment Files
 
-There are two grups of deployment file: Terraform files and scripts.
+There are two groups of deployment file: Terraform files and scripts.
 
 #### Terraform Files
 
@@ -122,44 +122,44 @@ Each deployment group brings a few variables that must be set.
 
 **Infra** deployment group
 
-| Variable   | Default   | Current value | Description                                     |
-|------------|-----------|---------------|-------------------------------------------------|
-| aws-region | none    | eu-north-1      | AWS region                                      |
-| name       | none    | atest           | Name of the stack                               |
-| cidr       | none    | 10.0.0.0/16                                | VPC network range    |
-| availability_zones   | none   | \["eu-north-1a","eu-north-1b"\]   | Availability zones   |
-| private_subnets      | none   | \["10.0.11.0/24","10.0.12.0/24"\] | Private subnet range |
-| public_subnets       | none   | \["10.0.51.0/24","10.0.52.0/24"\] | Public subnet range  |
-| nginx_port           | none   | 8080                              | Exposed port of nginx container       |
-| db_port              | none   | 3306                              | Port of RDS MySQL database            |
-| health_check_path    | none   | /                                 | Path for ALB checking nginx container |
+| Variable           | Default | Current value                     | Description                           |
+|--------------------|---------|-----------------------------------|---------------------------------------|
+| aws-region         | none    | eu-north-1                        | AWS region                            |
+| name               | none    | atest                             | Name of the stack                     |
+| cidr               | none    | 10.0.0.0/16                       | VPC network range                     |
+| availability_zones | none    | \["eu-north-1a","eu-north-1b"\]   | Availability zones                    |
+| private_subnets    | none    | \["10.0.11.0/24","10.0.12.0/24"\] | Private subnet range                  |
+| public_subnets     | none    | \["10.0.51.0/24","10.0.52.0/24"\] | Public subnet range                   |
+| nginx_port         | none    | 8080                              | Exposed port of nginx container       |
+| db_port            | none    | 3306                              | Port of RDS MySQL database            |
+| health_check_path  | none    | /                                 | Path for ALB checking nginx container |
 
 **Db** deployment group
 
-| Variable   | Default   | Current value | Description                   |
-|------------|-----------|---------------|-------------------------------|
-| aws-region | none    | eu-north-1 | AWS region                         |
-| name       | none    | atest  | Name of the stack                      |
-| db_username          | none   | admin |  DB Adminsitrator's user name  |
-| db_port              | none   | 3306  | Port of RDS MySQL database     |
-| db_name              | none   | atest | Initial database to create     |
-| db_password          | none   | none  | Admin user's password          |
-| db_instance_class    | none   | db.t3.micro | RDS instance class       |
+| Variable          | Default | Current value | Description                  |
+|-------------------|---------|---------------|------------------------------|
+| aws-region        | none    | eu-north-1    | AWS region                   |
+| name              | none    | atest         | Name of the stack            |
+| db_username       | none    | admin         | DB Administrator's user name |
+| db_port           | none    | 3306          | Port of RDS MySQL database   |
+| db_name           | none    | atest         | Initial database to create   |
+| db_password       | none    | none          | Admin user's password        |
+| db_instance_class | none    | db.t3.micro   | RDS instance class           |
 
 **NOTE** As the DB administrator's account will be created in the database, the password must be provided through the variable `db_password` by means of the environment variable `TF_VAR_db_password`.
 
 **Service** deployment group
 
-| Variable   | Default   | Current value | Description                            |
-|------------|-----------|---------------|----------------------------------------|
-| aws-region | none    | eu-north-1 | AWS region                                  |
-| name       | none    | atest      | Name of the stack                           |
-| service_desired_count| none   |  1    |  Count of task's containers in service  |
-| nginx_port           | none   | 8080  | Exposed port of nginx container         |
-| nginx_cpu            | none   | 256   | CPU allocation to the task              |
-| nginx_memory         | none   | 512   | Memory allocation to the task (MB)      |
-| nginx_image          | none   | bitnami/nginx       | nginx image name in Docker hub |
-| nginx_image_tag      | none   | 1.21.6-debian-11-r6 | Image tag of nginx image       |
+| Variable              | Default | Current value       | Description                           |
+|-----------------------|---------|---------------------|---------------------------------------|
+| aws-region            | none    | eu-north-1          | AWS region                            |
+| name                  | none    | atest               | Name of the stack                     |
+| service_desired_count | none    | 1                   | Count of task's containers in service |
+| nginx_port            | none    | 8080                | Exposed port of nginx container       |
+| nginx_cpu             | none    | 256                 | CPU allocation to the task            |
+| nginx_memory          | none    | 512                 | Memory allocation to the task (MB)    |
+| nginx_image           | none    | bitnami/nginx       | nginx image name in Docker hub        |
+| nginx_image_tag       | none    | 1.21.6-debian-11-r6 | Image tag of nginx image              |
 
 
 ##### Terraform Environment
@@ -209,7 +209,7 @@ terraform -chdir=service apply service.plan
 ### Limitations
 
 By now, some limitations and incompatibilities have probably become obvious.
-1. The task specifies that the nginx container shall store its data in an MySQL database. I did look at this feature and how nginx can do this but did not eventually implement it. An option is to build the Openresty [lua_nginx_module](https://www.nginx.com/resources/wiki/modules/lua/) in nginx and [connect](https://github.com/openresty/lua-nginx-module#typical-uses) to the database by means of the Lua language. As I could not get familiar with Lua soon enough, I left this functionaliyt out and used a "placeholder" image from Bitnami. Alternatively, one could utilize [Openresty](https://openresty.org) directly which come with the [module](https://openresty.org/en/lua-nginx-module.html) by default.
+1. The task specifies that the nginx container shall store its data in an MySQL database. I did look at this feature and how nginx can do this but did not eventually implement it. An option is to build the Openresty [lua_nginx_module](https://www.nginx.com/resources/wiki/modules/lua/) in nginx and [connect](https://github.com/openresty/lua-nginx-module#typical-uses) to the database by means of the Lua language. As I could not get familiar with Lua soon enough, I left this functionality out and used a "placeholder" image from Bitnami. Alternatively, one could utilize [Openresty](https://openresty.org) directly which come with the [module](https://openresty.org/en/lua-nginx-module.html) by default.
 2. No transport protection is being used between ALB and remote clients as no TLS certificate has been produced (plain HTTP).
 3. No transport protection is being used between ALB and the nginx ECS service as no TLS certificate has been produced for this purpose (plain HTTP).
 4. No encryption at rest is being used in the RDS MySQL database.
