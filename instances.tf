@@ -1,8 +1,8 @@
 # Configure the AWS Provider
 provider "aws" {
         region = "us-east-1"
-        access_key = "AKIAYRSPFXVLZ7FN67BZ"
-        secret_key = "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"
+        access_key = "access_key_id"
+        secret_key = "secret_access_key"
 }
 
 # Resource - ansible
