@@ -1,0 +1,46 @@
+---
+- name: install jenkins
+  hosts: CI/CD
+  become: true
+
+  tasks:
+  - name: write jenkins repo
+    copy:
+      dest: "/etc/yum.repos.d/jenkins.repo"
+      content: |
+        [jenkins]
+        name=Jenkins-stable
+        baseurl=http://pkg.jenkins.io/redhat-stable
+        gpgcheck=1
+
+  - name: import pgp key
+    rpm_key:
+      state: present
+      key: https://pkg.jenkins.io/redhat-stable/jenkins.io.key
+
+  - name: install epel-release
+    yum:
+      name: epel-release
+      state: present
+
+  - name: install jenkins and java package
+    yum:
+      name: '{{ packages}}'
+      state: present
+      update_cache: true
+    vars:
+      packages:
+        - jenkins
+        - java-1.8*
+
+  - name: start jenkins
+    service:
+      name: jenkins
+      state: started
+
+  - name: enable jenkins
+    service:
+      name: jenkins
+      enabled: yes
+...
+
