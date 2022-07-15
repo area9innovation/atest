@@ -1,0 +1,35 @@
+node{
+
+        def buildnumber = BUILD_NUMBER
+        stage("Git Clone"){
+
+                git url: '<url-link>', branch: 'master'
+        }
+
+        stage("Maven Package"){
+                def maven= tool name: "Maven",type: "maven"
+                sh "${maven}/bin/mvn package"
+        }
+
+        stage("Build Docker Image"){
+
+                sh "docker build -t ganeshkommalapati/<image_name>:${buildnumber} ."
+        }
+
+        stage("Docker Login and Push"){
+
+                withCredentials([string(credentialsId: 'DockerHubPwd', variable: 'DockerHubPwd')]) {
+                        sh "docker login -u ganeshkommalapati -p ${DockerHubPwd}"
+                }
+
+                sh "docker push ganeshkommalapati/<image_name>:${buildnumber}"
+        }
+
+        stage("Deployment"){
+
+                sshagent(['Instances_SSH']) {
+                        sh "ssh -o StrictHostKeyChecking=no centos@172.31.86.123 docker container run -dt -p 80:80 --name <container_name> ganeshkommalapati/<image_name>:${buildnumber}"
+                        sh "ssh -o StrictHostKeyChecking=no centos@172.31.12.48 docker container run -dt -p 80:80 --name <container_name> ganeshkommalapati/<image_name>:${buildnumber}"
+                }
+        }
+}
