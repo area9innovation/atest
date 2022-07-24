@@ -1,0 +1,11 @@
+version: "3.8"
+services:
+    nodeserver:
+        image: alielkhatteb/nodeserver:latest
+        ports:
+            - "5000:5000"
+    nginx:
+        restart: always
+        image: alielkhatteb/nginx:latest
+        ports:
+            - "80:80"
