@@ -5,12 +5,13 @@ infrastrcture and type:
 terraform init
 terraform apply
 ### Output
+
 you will get 3 machines:
-*docker-instance in private subnet
-*docker-instance in private subnet
-*jenkins-master in public subnet(because i need to access to add passwords and to make things easier in real world it will be in private)
-*load-balancer access the app
-*rds in database subnet
+* docker-instance in private subnet
+* docker-instance in private subnet
+* jenkins-master in public subnet(because i need to access to add passwords and to make things easier in real world it will be in private)
+* load-balancer access the app
+* rds in database subnet
 all the vpcs and security groups and key generation are done from scratch everytime you run terraform.
 ---------------------------------------------------------------------------------------------------------
 #### app folder
