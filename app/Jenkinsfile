@@ -1,0 +1,51 @@
+pipeline {
+    agent any
+    stages {
+        //stage ('Build') {
+        //    steps {
+        //        dir("app") {
+        //     sh 'npm install' //this is just an example how a pipeline would look like of course the nodejs app doesnt need to be built
+        //    }                 // because it has only express in it
+        //        
+        //    }
+        //}
+        
+
+        
+        stage ('Docker-build') { //here depend on the branch we create the tag
+            steps {
+                 dir("app") {
+                 sh "docker build -t alielkhatteb/nodeserver:latest ."
+               }
+               dir("nginx") {
+                 sh "docker build -t alielkhatteb/nginx:latest ../nginx"   
+               }  
+           }
+        }
+
+        stage("DockerPush"){
+            steps {
+            withCredentials([string(credentialsId: 'dockerhub', variable: 'dockerhub')]) {
+                    sh "docker login -u alielkhatteb -p ${dockerhub}"
+                    sh "docker push alielkhatteb/nodeserver:latest"
+                    sh "docker push alielkhatteb/nginx:latest"
+            } 
+            }
+        }
+
+        stage("docker deploy"){
+
+                steps {
+			    sshagent(['ec2-t1']) {
+			        
+				    sh 'ssh -o StrictHostKeyChecking=no ec2-user@18.234.231.142 '
+				    sh "docker-compose pull  && docker-compose up -d"
+			    }
+                sshagent(['ec2-t2']) {
+				    sh 'ssh -o StrictHostKeyChecking=no ec2-user@3.93.173.19 '
+				    sh "docker-compose pull  && docker-compose up -d"
+			    }
+			}
+        }
+    }
+}
