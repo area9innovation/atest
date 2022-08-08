@@ -1,0 +1,103 @@
+- name: Setup instance
+  hosts: instances
+  tags: setup
+  gather_facts: no
+
+  remote_user: ec2-user
+  tasks:
+    - name: Update all packages
+      yum:
+        name: '*'
+        state: latest
+        update_only: yes
+
+    - name: Install docker
+      yum:
+        name:
+          - docker
+          - python3
+          - python3-pip
+          - mysql
+        state: present
+      become: true
+
+
+    - name: Pip-Install docker (for pulling images with ansible)
+      shell: pip3 install docker
+      become: yes
+
+    - name: users | adding docker users (for use without sudo)
+      user:
+        name: e2-user
+        append: yes
+        groups: docker
+      become: true
+
+    - name: Start docker daemon
+      service:
+        name: docker
+        state: started
+      become: true
+
+- name: Database
+  hosts: instances
+  tags: db
+  tasks:
+    - name: Read
+      shell: 'mysql  -u admin --password={{(lookup("env","MYSQL_PASSWORD"))}} -h database-1.cluster-ro-cwfx5uqiuzgr.eu-central-1.rds.amazonaws.com -e "show databases;"'
+      register: command_output
+    - debug:
+        var: command_output.stdout_lines
+
+- name: Deploy on instances
+  hosts: instances
+  tags: pull
+  serial:
+    - 1
+  tasks:
+#    - name: Pull an image
+#      docker_image:
+#        name: '{{image_name}}:{{version}}'
+#        repository: '{{aws_account_id}}.dkr.ecr.{{region}}.amazonaws.com/{{image_name}}:latest'
+#        source: pull
+#        pull:
+#          platform: amd64
+    - name: Create a web container
+      vars:
+        ansible_python_interpreter: /usr/bin/python3
+      docker_container:
+        image: nginx
+        name: nginx
+        state: started
+        auto_remove: true
+        ports:
+          - "80:80"
+      register: status
+      become: true
+
+
+- name: Push build to docker-repository
+  hosts: localhost
+  tags: push
+  tasks:
+    - name: Build App
+      shell: echo "Would be compiling..."
+    - name: Build image and with build args
+      docker_image:
+        name: app
+        build:
+          path: .
+          cache_from:
+            - nginx:latest
+            - alpine:3.8
+        source: build
+    - name: Add tag latest to image
+      docker_image:
+        name: '{{image_name}}:{{version}}'
+        repository: '{{aws_account_id}}.dkr.ecr.{{region}}.amazonaws.com/{{image_name}}:latest'
+        force_tag: yes
+        source: local
+        push: yes
+
+
+
