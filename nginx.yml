@@ -1,0 +1,12 @@
+##Playbook 2 - To build docker image, push, pull, provision ec2 and install nginx from Docker
+##Playbook name: nginx.yml
+---
+- name: Playbook to do the Docker and Instance part
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  roles:
+    - role: '../roles/build-image' ##role to push the docker image to repo
+    - role: '../roles/provision-sg' ##role to create ec2 key pair and security group for EC2 instance
+    - role: '../roles/provision-instance' ##role to create ec2 instances
+    - role: '../roles/deploy-nginx' ##role to pull the image from container and deploy in instance

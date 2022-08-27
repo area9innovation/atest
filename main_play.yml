@@ -1,0 +1,14 @@
+##For Area9 test
+##Assumption: All the resources are hosted in AWS cloud
+##Scripting Language used: Ansible
+##Playbooks and Roles are splitted based on the requirement
+---
+- name: To import the ALB playbook
+  import_playbook: alb.yml
+
+- name: To import the instance related and deploy playbook
+  import_playbook: nginx.yml
+  
+- name: To import the MySQL db playbook
+  import_playbook: database.yml
+  
