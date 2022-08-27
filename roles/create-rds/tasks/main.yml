@@ -1,0 +1,30 @@
+##task file in 'create-rds' role to create RDS
+##assumption1: All the variable values are assumed to be mentioned during run time
+##assumption2: Instance type is taken as t2.micro
+---
+- name:  Create AWS RDS database
+  rds:
+    aws_access_key: "{{ AWS_RDS_ACCESS_KEY }}"
+    aws_secret_key: "{{ AWS_RDS_SECRET_KEY }}"
+    command: create
+    db_engine: MySQL
+    region: "{{ region }}"
+    instance_name: "{{ Instance_Name }}"
+    instance_type: db.t2.micro
+    username: "{{ MYSQL_ADMIN_USERNAME }}"
+    password: "{{ MYSQL_ADMIN_PASSWORD }}"
+    size: ""{{ size }}"
+    publicly_accessible: no
+    vpc_security_groups: "{{ sg_id }}"
+    wait: yes
+    wait_timeout: 900
+  register:  rds
+  
+##the RDS endpoint is taken from the previous task
+- name: create DB with in RDS instance
+  mysql_db:
+    login_host:      "{{ rds.instance.endpoint }}"
+    login_user:      "{{ MYSQL_ADMIN_USERNAME }}"
+    login_password:  "{{ MYSQL_ADMIN_PASSWORD }}"
+    name: "{{db_name }}"
+    state: present
