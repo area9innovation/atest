@@ -1,0 +1,24 @@
+##task file in 'provision-instance' role to launch ec2 instances
+##assumption1: one instance is provsioned in one AZ (i.e two instances one on each AZ)
+##assumption2 there are two subnets 1 and 2 , where one instance on each subnetis provisioned (HA model)
+##assumption3 ec2 instance type is t2.micro (used for test purpose)
+##assumption4: base image is kept as variable since it can be changed based on the requirement
+---
+- name: Provision EC2 instance
+  ec2_instance:
+    name: "{{ instance_name }}"
+    key_name: "{{ app_name }}"
+    vpc_subnet_id: "{{ item.subnetid }}"
+    zone: "{{ item.zone }}"
+    instance_type: t2.micro
+    security_group: "{{ ec2_sg_app_id }}"
+    network:
+      assign_public_ip: true
+    image_id: "{{ image_id }}"
+    wait: yes
+    with_items:
+      - zone: "{{ az_a }}" 
+        subnetid: "{{ subnet_id1 }}"
+      - zone: "{{ az_b }}"
+        subnetid: "{{ subnet_id2 }}"      
+  register: instance
