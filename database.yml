@@ -1,9 +1,0 @@
-##Playbook 3 - To create RDS and MySQL database with in that
-##Playbook Name - database.yml
----
-- name: Playbook to create RDS and MySQL
-  hosts: localhost
-  connection: local
-  gather_facts: false
-  roles:
-    - role: '../roles/create-rds' ##role to create rds and mysql db in that
