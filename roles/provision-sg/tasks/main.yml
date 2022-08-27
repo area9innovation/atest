@@ -1,0 +1,24 @@
+##task file in 'provision-sg'role to create ssh key for ec2 and security groups
+---
+- name: Create EC2 SSH key
+  ec2_key:
+    name: "{{ app_name }}"
+  register: ec2_key
+
+- name: Save EC2 SSH key to file
+  copy:
+    content: "{{ ec2_key.key.private_key }}"
+    dest: "{{ key_folder }}"
+  when: ec2_key.changed
+  
+- name: To create security group for the EC2 instances
+  ec2_group:
+    name: "{{ sg_name }}"
+    description: EC2 VPC Security Group
+    vpc_id: "{{ vpc_id }}"
+    rules:
+      - proto: tcp
+        ports: 80
+        group_id: "{{ alb_sg_id }}" ##security group of the ALB
+        rule_desc: Allow app access to nginx
+  register: ec2_sg
