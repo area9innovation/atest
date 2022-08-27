@@ -1,0 +1,57 @@
+##task file in 'deploy-nginx' role  to pull the image from repo and deploy in the instance
+---
+- name: Install nginx
+  become: yes
+  yum:
+    name: nginx
+    state: latest
+    
+- name: Deploy nginx config for proxying through to Docker container
+  become: yes
+  copy:
+    src: "etc/{{ app_name}}.conf"
+    dest: "/etc/nginx/default.d/{{ app_name}}.conf"
+
+- name: Enable and start nginx
+  become: yes
+  service:
+    name: nginx
+    enabled: yes
+    state: started
+    
+- name: Install Docker
+  become: yes
+  yum:
+    name: docker
+    state: latest
+
+- name: Install Docker module for Python
+  pip:
+    executable: pip3
+    name: docker
+
+- name: Enable and start Docker service
+  become: yes
+  service:
+    name: docker
+    enabled: yes
+    state: started
+    
+- name: Log in to Docker Hub
+  docker_login:
+    username: "{{ docker_user }}"
+    password: "{{ docker_pass }}"
+
+- name: Pull Docker image
+  docker_image:
+    name: "{{ docker_repo }}/{{ app_name }}"
+    source: pull
+    force_source: yes
+
+- name: Run Docker container
+  docker_container:
+    image: "{{ docker_repo }}/{{ app_name }}"
+    name: "{{ app_name }}"
+    detach: yes
+    published_ports: 80:443
+    state: started
