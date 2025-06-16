@@ -88,19 +88,13 @@ flowchart TD
 
 __Please create the infrastructure as code and Kubernetes manifests leaving out the actual CI and CD.__ You can pick the tools/languages and underlying cloud that you are most comfortable with. This is a practical task, so some IaC, Kubernetes YAML configs, and deployment scripts are required.
 
-Key components to implement:
-- **Infrastructure as Code**: Terraform/CloudFormation/Pulumi for cloud resources (VPC, Kubernetes cluster, managed database)
-- **Kubernetes Manifests**: Deployment, Service, Ingress, ConfigMaps, Secrets
-- **Container Orchestration**: Pod scheduling, auto-scaling, health checks
-- **Networking**: Service mesh considerations, ingress controllers, network policies
-- **Storage**: Persistent volumes if needed, database connectivity
-- **Security**: RBAC, pod security policies, network segmentation
-
 You are not expected to be thorough, but pick parts that make most sense to go into a code repository in your opinion. Making assumptions and cutting corners is fine. Please document the decision making related to that, especially around:
-- Choice of managed Kubernetes service (EKS/GKE/AKS)
+- Choice of managed Kubernetes service (EKS/GKE/AKS) or manual k8s installation
 - Database deployment strategy (managed vs in-cluster)
 - Networking and security approach
 - Scaling and resource management
 - Development vs production considerations
+
+Using AI tools is fine, we can't really control it. But we would like to learn something about you from this experience, not about how AI solves the task. This is meant as a conversation starter and a chance for you to showcase something of your choice.
 
 You can submit your code/comments as a pull request to this repository.
