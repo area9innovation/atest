@@ -61,6 +61,6 @@ You are not expected to be thorough, but pick parts that make most sense to go i
 
 You can submit your code/comments as a pull request to this repository or a zip archive by mail.
 
-## Alternatively
+## Supplement
 
-If you have some code that you can share, preferably with git history, this works as well.
+If you have some code that you can share, preferably with git history, please submit this works as well.
