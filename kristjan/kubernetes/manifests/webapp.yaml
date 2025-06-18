@@ -1,0 +1,158 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: php-app
+data:
+  index.php: |
+    <?php
+    $host = 'mysql-service';
+    $user = 'webuser';
+    $pass = 'webpassword';
+    $db = 'webapp';
+    
+    echo "<html><head><title>Web App</title>";
+    echo "<style>body{font-family:Arial;margin:40px;background:#f5f5f5;}";
+    echo ".container{background:white;padding:20px;border-radius:8px;box-shadow:0 2px 4px rgba(0,0,0,0.1);}";
+    echo ".success{color:#28a745;} .error{color:#dc3545;} .info{color:#17a2b8;}";
+    echo "</style></head><body>";
+    echo "<div class='container'>";
+    
+    try {
+        $pdo = new PDO("mysql:host=$host;dbname=$db", $user, $pass);
+        $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+        
+        // Create a simple table if it doesn't exist
+        $pdo->exec("CREATE TABLE IF NOT EXISTS visits (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
+            hostname VARCHAR(255)
+        )");
+        
+        // Record this visit
+        $hostname = gethostname();
+        $stmt = $pdo->prepare("INSERT INTO visits (hostname) VALUES (?)");
+        $stmt->execute([$hostname]);
+        
+        // Get visit count
+        $stmt = $pdo->query("SELECT COUNT(*) as count FROM visits");
+        $visitCount = $stmt->fetch()['count'];
+        
+        // Get recent visits
+        $stmt = $pdo->query("SELECT * FROM visits ORDER BY timestamp DESC LIMIT 10");
+        $recentVisits = $stmt->fetchAll();
+        
+        echo "<h1 class='success'>✅ Database Connected Successfully!</h1>";
+        echo "<div class='info'>";
+        echo "<p><strong>Container:</strong> " . $hostname . "</p>";
+        echo "<p><strong>Database Host:</strong> " . $host . "</p>";
+        echo "<p><strong>Current Time:</strong> " . date('Y-m-d H:i:s') . "</p>";
+        echo "<p><strong>Total Visits:</strong> " . $visitCount . "</p>";
+        echo "</div>";
+        
+        echo "<h3>Recent Visits:</h3>";
+        echo "<table border='1' style='border-collapse:collapse;width:100%;'>";
+        echo "<tr style='background:#e9ecef;'><th style='padding:8px;'>ID</th><th style='padding:8px;'>Timestamp</th><th style='padding:8px;'>Container</th></tr>";
+        foreach($recentVisits as $visit) {
+            echo "<tr>";
+            echo "<td style='padding:8px;'>" . $visit['id'] . "</td>";
+            echo "<td style='padding:8px;'>" . $visit['timestamp'] . "</td>";
+            echo "<td style='padding:8px;'>" . $visit['hostname'] . "</td>";
+            echo "</tr>";
+        }
+        echo "</table>";
+        
+    } catch(PDOException $e) {
+        echo "<h1 class='error'>❌ Database Connection Failed!</h1>";
+        echo "<p class='error'><strong>Error:</strong> " . $e->getMessage() . "</p>";
+        echo "<div class='info'>";
+        echo "<p><strong>Container:</strong> " . gethostname() . "</p>";
+        echo "<p><strong>Attempted Host:</strong> " . $host . "</p>";
+        echo "<p><strong>Time:</strong> " . date('Y-m-d H:i:s') . "</p>";
+        echo "</div>";
+    }
+    
+    echo "</div></body></html>";
+    ?>
+  init.sql: |
+    CREATE DATABASE IF NOT EXISTS webapp;
+    USE webapp;
+    CREATE TABLE IF NOT EXISTS visits (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
+        hostname VARCHAR(255)
+    );
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: webapp
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: webapp
+  template:
+    metadata:
+      labels:
+        app: webapp
+    spec:
+      containers:
+      - name: php-apache
+        image: php:8.1-apache
+        ports:
+        - containerPort: 80
+        env:
+        - name: MYSQL_HOST
+          value: "mysql-service"
+        - name: MYSQL_USER
+          value: "webuser"
+        - name: MYSQL_PASSWORD
+          value: "webpassword"
+        - name: MYSQL_DATABASE
+          value: "webapp"
+        command: ["/bin/bash"]
+        args: 
+          - "-c"
+          - |
+            # Install MySQL PDO extension
+            docker-php-ext-install pdo pdo_mysql
+            
+            # Copy our PHP app to web root
+            cp /var/www/app/index.php /var/www/html/
+            
+            # Start Apache
+            apache2-foreground
+        volumeMounts:
+        - name: php-app
+          mountPath: /var/www/app
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 80
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 80
+          initialDelaySeconds: 15
+          periodSeconds: 5
+          timeoutSeconds: 3
+      volumes:
+      - name: php-app
+        configMap:
+          name: php-app
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: webapp-service
+spec:
+  selector:
+    app: webapp
+  ports:
+    - port: 80
+      targetPort: 80
+      nodePort: 30080
+  type: NodePort
